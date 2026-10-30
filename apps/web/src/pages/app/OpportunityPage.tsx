@@ -196,7 +196,7 @@ function PipelineSection({ o, onSave, saving, onChange }: { o: OpportunityDetail
         <Field label="Follow-up date">{(id) => <Input id={id} type="date" value={follow} onChange={(e) => setFollow(e.target.value)} />}</Field>
         <Field label="Notes">{(id) => <Textarea id={id} value={notes} maxLength={5000} onChange={(e) => setNotes(e.target.value)} />}</Field>
         <Button variant="secondary" className="w-full" loading={patch.isPending} onClick={() => patch.mutate({ notes, followUpAt: follow ? new Date(`${follow}T09:00:00`).toISOString() : null })}>Save notes</Button>
-        <p className="text-xs text-teal-700" aria-live="polite">{msg}</p>
+        <p className="text-xs text-teal-700" role="status" aria-live="polite">{msg}</p>
       </div>
     </Card>
   );

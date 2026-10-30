@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, setTokenGetter } from './api';
 
@@ -24,15 +24,21 @@ const LOCAL_KEY = 'vlf.dev.session';
 const GENERIC_LOGIN_ERROR = 'Email or password is incorrect.';
 
 let supabase: SupabaseClient | null = null;
-function sb() {
+/** Loaded on demand so local-mode builds don't ship the Supabase client in the main bundle. */
+async function loadSupabase(): Promise<SupabaseClient> {
   if (!supabase) {
     const url = import.meta.env.VITE_SUPABASE_URL as string;
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
     if (!url || !key) throw new Error('Supabase is not configured (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).');
+    const { createClient } = await import('@supabase/supabase-js');
     supabase = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } });
   }
   return supabase;
 }
+const sb = () => {
+  if (!supabase) throw new Error('Supabase client not initialised yet');
+  return supabase;
+};
 
 function decodeExp(token: string): number {
   try {
@@ -48,18 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (AUTH_MODE === 'supabase') {
-      const client = sb();
-      setTokenGetter(async () => (await client.auth.getSession()).data.session?.access_token ?? null);
-      client.auth.getSession().then(({ data }) => {
-        const u = data.session?.user;
-        setUser(u ? { id: u.id, email: u.email ?? null } : null);
-        setReady(true);
-      });
-      const { data } = client.auth.onAuthStateChange((_e, session) => {
-        const u = session?.user;
-        setUser(u ? { id: u.id, email: u.email ?? null } : null);
-      });
-      return () => data.subscription.unsubscribe();
+      let unsubscribe = () => {};
+      setTokenGetter(async () => (await (await loadSupabase()).auth.getSession()).data.session?.access_token ?? null);
+      loadSupabase().then((client) => {
+        client.auth.getSession().then(({ data }) => {
+          const u = data.session?.user;
+          setUser(u ? { id: u.id, email: u.email ?? null } : null);
+          setReady(true);
+        });
+        const { data } = client.auth.onAuthStateChange((_e, session) => {
+          const u = session?.user;
+          setUser(u ? { id: u.id, email: u.email ?? null } : null);
+        });
+        unsubscribe = () => data.subscription.unsubscribe();
+      }).catch(() => setReady(true));
+      return () => unsubscribe();
     }
     // Local dev adapter: short-lived dev token in sessionStorage (never used in production builds).
     const read = () => {

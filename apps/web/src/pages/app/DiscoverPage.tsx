@@ -26,12 +26,14 @@ export function DiscoverPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['opportunities'] }),
   });
 
-  const setParam = (k: string, v: string | null) => {
-    const next = new URLSearchParams(params);
-    if (v === null || v === '' || v === 'any' || v === 'all') next.delete(k); else next.set(k, v);
-    if (k !== 'page') next.delete('page');
-    setParams(next, { replace: true });
-  };
+  // Functional update: always derive from the latest URL state (avoids stale filters after rapid changes).
+  const setParam = (k: string, v: string | null) =>
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (v === null || v === '' || v === 'any' || v === 'all') next.delete(k); else next.set(k, v);
+      if (k !== 'page') next.delete('page');
+      return next;
+    }, { replace: true });
   const page = Number(params.get('page') ?? 1);
   const d = list.data;
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;

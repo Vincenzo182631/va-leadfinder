@@ -35,7 +35,8 @@ export function OnboardingPage() {
     if (me.data?.profile?.displayName) setName((n) => n || me.data!.profile!.displayName);
     if (me.data?.preferences) setPrefs(me.data.preferences);
   }, [me.data]);
-  useEffect(() => heading.current?.focus(), [step]);
+  // Move focus to the step heading (screen-reader context) once it exists and on every step change.
+  useEffect(() => heading.current?.focus(), [step, me.isLoading, ready]);
 
   if (ready && !user) return <Navigate to="/login" replace />;
   if (me.isLoading || !ready) return <div className="p-8"><LoadingBlock /></div>;

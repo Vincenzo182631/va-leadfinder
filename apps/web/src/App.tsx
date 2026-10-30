@@ -1,7 +1,9 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { LoadingBlock } from './components/ui';
 import { AdminGate, AppLayout } from './components/AppLayout';
 import { MarketingLayout } from './components/MarketingLayout';
-import { AdminPage } from './pages/admin/AdminPage';
+const AdminPage = lazy(() => import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })));
 import { AccountPage } from './pages/app/AccountPage';
 import { DashboardPage } from './pages/app/DashboardPage';
 import { DiscoverPage } from './pages/app/DiscoverPage';
@@ -41,7 +43,7 @@ export function App() {
       </Route>
       <Route path="admin" element={<AppLayout />}>
         <Route element={<AdminGate />}>
-          <Route index element={<AdminPage />} />
+          <Route index element={<Suspense fallback={<LoadingBlock />}><AdminPage /></Suspense>} />
         </Route>
       </Route>
     </Routes>
