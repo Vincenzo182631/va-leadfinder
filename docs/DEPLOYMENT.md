@@ -25,6 +25,33 @@ Nothing has been deployed from this repository. Staging and production require y
 6. Note the project URL, anon key, service-role key and JWT settings (JWKS is used automatically; set `SUPABASE_JWT_SECRET` only for legacy HS256 tokens).
 7. Create your admin account by signing up, copy its user id into `ADMIN_USER_IDS`.
 
+## Automated staging path (from a Claude Code cloud session)
+
+Cloud sessions can't reach Postgres port 5432, so the database is set up over HTTPS through the Supabase Management API, and Hyperdrive connects to Postgres from Cloudflare's side.
+
+**Environment variables** (add them in the cloud environment settings, then start a new session; never paste them into chat):
+
+| Name | Where to get it | Notes |
+|---|---|---|
+| `SUPABASE_ACCESS_TOKEN` | supabase.com → Account → Access Tokens | Full account access; revoke after setup |
+| `SUPABASE_PROJECT_REF` | Project URL `supabase.com/dashboard/project/<ref>` | Not secret |
+| `SUPABASE_DB_URL` | Project → **Connect** → *Session pooler* URI, with the DB password filled in | Used only to create Hyperdrive |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → *Create custom token* | Account: Workers Scripts Edit, Hyperdrive Edit, Cloudflare Pages Edit, Account Settings Read; User: User Details Read |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → Workers & Pages (right sidebar) | Not secret |
+
+**Runbook:**
+1. `node scripts/supabase-apply-migrations.mjs`: migrations and seed, recorded in `supabase_migrations.schema_migrations`.
+2. Read the project's anon (publishable) key: `GET https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys`.
+3. `cd apps/api && npx wrangler hyperdrive create vlf-db-staging --connection-string="$SUPABASE_DB_URL"`, then put the id in `[[env.staging.hyperdrive]]`.
+4. `wrangler secret put` for `SUPABASE_URL` (`https://$SUPABASE_PROJECT_REF.supabase.co`) and `INTERNAL_JOB_TOKEN` (random, 48 hex chars, never printed). Leave `ADMIN_USER_IDS` until the owner signs up.
+5. `npx wrangler deploy --env staging` and note the `*.workers.dev` URL.
+6. `npx wrangler pages project create va-leadfinder --production-branch main`. Build the web app with `VITE_AUTH_MODE=supabase`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_API_BASE_URL=<workers.dev URL>`, then `npx wrangler pages deploy apps/web/dist --project-name va-leadfinder`.
+7. If the Pages URL differs from `https://va-leadfinder.pages.dev`, update `APP_BASE_URL`/`CORS_ORIGINS` in `wrangler.toml` and redeploy the Worker.
+8. Supabase auth config (`PATCH /v1/projects/<ref>/config/auth`): `site_url` = Pages URL; `uri_allow_list` = `<pages>/onboarding,<pages>/reset-password`; keep email confirmation on.
+9. The owner signs up on the staging site. Run `wrangler secret put ADMIN_USER_IDS --env staging` with that user id.
+10. Admin → Ingestion → **Run VA LeadFinder Demo Data**, then do the smoke test from §6. If logins return 401, the project issues legacy HS256 tokens: set `SUPABASE_JWT_SECRET`.
+11. Afterwards, revoke `SUPABASE_ACCESS_TOKEN` and narrow or delete the Cloudflare token.
+
 ## 2. Cloudflare Worker (API)
 
 ```bash
