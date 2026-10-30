@@ -46,6 +46,10 @@ Cloud sessions can't reach Postgres port 5432, so the database is set up over HT
 4. `wrangler secret put` for `SUPABASE_URL` (`https://$SUPABASE_PROJECT_REF.supabase.co`) and `INTERNAL_JOB_TOKEN` (random, 48 hex chars, never printed). Leave `ADMIN_USER_IDS` until the owner signs up.
 5. `npx wrangler deploy --env staging` and note the `*.workers.dev` URL.
 6. `npx wrangler pages project create va-leadfinder --production-branch main`. Build the web app with `VITE_AUTH_MODE=supabase`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_API_BASE_URL=<workers.dev URL>`, then `npx wrangler pages deploy apps/web/dist --project-name va-leadfinder`.
+   - Run both commands from `apps/web`, not the repo root or `apps/api` (wrangler would pick up the API's `wrangler.toml` or fail workspace detection).
+   - Newer wrangler versions try to turn `pages project create` into a Workers project and fail. Add `--force` to that one command to create a classic Pages project. Later commands don't need it.
+   - The build adds the `VITE_API_BASE_URL` origin to the CSP `connect-src` in `dist/_headers`. If it's missing, the browser blocks every API call and the app shows "Cannot reach the server".
+   - After any web redeploy, hard-reload open tabs (Ctrl/Cmd + Shift + R). A tab loaded earlier keeps the old CSP and old code.
 7. If the Pages URL differs from `https://va-leadfinder.pages.dev`, update `APP_BASE_URL`/`CORS_ORIGINS` in `wrangler.toml` and redeploy the Worker.
 8. Supabase auth config (`PATCH /v1/projects/<ref>/config/auth`): `site_url` = Pages URL; `uri_allow_list` = `<pages>/onboarding,<pages>/reset-password`; keep email confirmation on.
 9. The owner signs up on the staging site. Run `wrangler secret put ADMIN_USER_IDS --env staging` with that user id.
