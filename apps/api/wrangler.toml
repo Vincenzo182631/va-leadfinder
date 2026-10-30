@@ -1,0 +1,62 @@
+# Cloudflare Worker for the VA LeadFinder API.
+# Secrets are NEVER stored here. Set per environment with:
+#   wrangler secret put <NAME> --env staging|production
+# Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, (SUPABASE_JWT_SECRET if legacy HS256),
+#   ADMIN_USER_IDS, INTERNAL_JOB_TOKEN, PAYMONGO_SECRET_KEY, PAYMONGO_WEBHOOK_SECRET,
+#   TRANSACTIONAL_EMAIL_API_KEY, TRANSACTIONAL_EMAIL_FROM,
+#   (later) APPROVED_OPPORTUNITY_PROVIDER_KEY, APPROVED_OPPORTUNITY_PROVIDER_BASE_URL
+name = "va-leadfinder-api"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Database via Hyperdrive (pooling in front of Supabase Postgres).
+# Create: wrangler hyperdrive create vlf-db --connection-string="postgres://..."
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_WITH_HYPERDRIVE_ID"
+
+# Cron schedule (UTC) — must match the mapping in src/worker.ts:
+#   "0 */6 * * *"  -> ingest (licensed sources only, centrally)
+#   "30 18 * * *"  -> maintenance (expire + retention purge) = 02:30 Asia/Manila
+#   "0 22 * * *"   -> digest = 06:00 Asia/Manila
+[triggers]
+crons = ["0 */6 * * *", "30 18 * * *", "0 22 * * *"]
+
+[vars]
+APP_ENV = "development"
+AUTH_MODE = "local"
+PAYMONGO_MODE = "disabled"
+
+[env.staging]
+name = "va-leadfinder-api-staging"
+[env.staging.vars]
+APP_ENV = "staging"
+AUTH_MODE = "supabase"
+PAYMONGO_MODE = "test"
+TRANSACTIONAL_EMAIL_PROVIDER = "resend"
+APP_BASE_URL = "https://staging.example.com"
+CORS_ORIGINS = "https://staging.example.com"
+LICENSED_PROVIDER_ENABLED = "false"
+[[env.staging.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_WITH_STAGING_HYPERDRIVE_ID"
+[env.staging.triggers]
+crons = ["0 */6 * * *", "30 18 * * *", "0 22 * * *"]
+
+[env.production]
+name = "va-leadfinder-api-production"
+[env.production.vars]
+APP_ENV = "production"
+AUTH_MODE = "supabase"
+# Keep "disabled" until PayMongo subscriptions are activated and staging tests pass; then "live".
+PAYMONGO_MODE = "disabled"
+TRANSACTIONAL_EMAIL_PROVIDER = "resend"
+APP_BASE_URL = "https://app.example.com"
+CORS_ORIGINS = "https://app.example.com"
+LICENSED_PROVIDER_ENABLED = "false"
+[[env.production.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_WITH_PRODUCTION_HYPERDRIVE_ID"
+[env.production.triggers]
+crons = ["0 */6 * * *", "30 18 * * *", "0 22 * * *"]

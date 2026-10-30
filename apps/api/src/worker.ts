@@ -14,6 +14,13 @@ function depsFor(env: WorkerEnv) {
   return buildDeps(config, { sql: createSql(url, { max: 5, prepare: config.DATABASE_PREPARE }) });
 }
 
+/** Must match [triggers] crons in wrangler.toml. Unknown schedules are ignored, never defaulted. */
+const CRON_JOBS: Record<string, 'ingest' | 'maintenance' | 'digest'> = {
+  '0 */6 * * *': 'ingest',
+  '30 18 * * *': 'maintenance',
+  '0 22 * * *': 'digest',
+};
+
 export default {
   async fetch(req: Request, env: WorkerEnv, ctx: ExecutionContext) {
     const deps = depsFor(env);
@@ -23,7 +30,11 @@ export default {
   },
   async scheduled(event: ScheduledController, env: WorkerEnv, ctx: ExecutionContext) {
     const deps = depsFor(env);
-    const job = event.cron === '0 22 * * *' ? 'digest' : event.cron === '30 18 * * *' ? 'maintenance' : 'ingest';
+    const job = CRON_JOBS[event.cron];
+    if (!job) {
+      console.warn(JSON.stringify({ level: 'warn', msg: 'cron.unmapped', cron: event.cron }));
+      return;
+    }
     ctx.waitUntil(runJob(deps, job).finally(() => deps.sql.end({ timeout: 5 })));
   },
 };

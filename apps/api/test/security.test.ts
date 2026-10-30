@@ -78,7 +78,7 @@ describe('multi-user isolation (RLS)', () => {
   });
 
   it('a user cannot grant themselves an unlock or subscription', async () => {
-    const [opp] = await demoIds(h, 2);
+    const [opp] = (await demoIds(h, 2)) as [string];
     await expect(withUser(h.deps.sql, { sub: b.id, role: 'authenticated' }, (tx) =>
       tx`insert into opportunity_unlocks (user_id, opportunity_id, period_key, plan_code) values (${b.id}, ${opp}, '2026-10', 'pro')`)).rejects.toThrow(/permission denied/);
     await expect(withUser(h.deps.sql, { sub: b.id, role: 'authenticated' }, (tx) =>

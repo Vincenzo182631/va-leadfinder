@@ -7,6 +7,7 @@
     "dev": "tsx watch --env-file-if-exists=../../.env src/node.ts",
     "start": "tsx --env-file-if-exists=../../.env src/node.ts",
     "seed:demo": "tsx --env-file-if-exists=../../.env src/scripts/seed-demo.ts",
+    "seed:dev-users": "tsx --env-file-if-exists=../../.env src/scripts/seed-dev-users.ts",
     "paymongo:create-plans": "tsx --env-file-if-exists=../../.env src/scripts/paymongo-create-plans.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",

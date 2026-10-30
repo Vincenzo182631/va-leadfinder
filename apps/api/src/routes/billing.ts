@@ -116,7 +116,10 @@ authed.post('/billing/checkout', rateLimit('checkout', 5, 60_000), async (c) => 
     const [profile] = await tx`select display_name from profiles where user_id = ${claims.sub}`;
     const customerId = prev?.provider_customer_id ?? (await deps.billing.createCustomer({ email: claims.email ?? '', name: profile?.display_name || 'VA Subscriber' }));
     const sub = await deps.billing.createSubscription({ customerId, providerPlanId });
-    const promoEnds = plan.promo_months ? new Date(Date.now() + plan.promo_months * 30 * 86_400_000).toISOString() : null;
+    // Founding promo length is admin-configurable (app_settings.founding_promo_months); calendar months.
+    const [cfg] = await tx`select founding_promo_months from app_settings where id = 1`;
+    const promoMonths = planCode === 'founding' ? (cfg?.founding_promo_months ?? plan.promo_months) : plan.promo_months;
+    const promoEnds = promoMonths ? (() => { const d = deps.now(); d.setUTCMonth(d.getUTCMonth() + promoMonths); return d.toISOString(); })() : null;
     const [row] = await tx`insert into subscriptions (user_id, plan_id, provider, provider_mode, provider_customer_id, provider_subscription_id,
         provider_payment_intent_id, status, promo_ends_at)
       values (${claims.sub}, ${plan.id}, ${deps.billing.mode === 'mock' ? 'mock' : 'paymongo'}, ${deps.billing.mode}, ${customerId},
