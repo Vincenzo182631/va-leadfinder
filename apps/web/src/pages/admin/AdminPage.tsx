@@ -123,7 +123,9 @@ function Sources() {
               <p className="text-xs text-muted">{s.data_type} · {s.opportunity_count} opportunities · last run {fmtDateTime(s.last_run_at)}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <Badge tone={s.license_status === 'approved' ? 'teal' : s.license_status === 'revoked' || s.license_status === 'rejected' ? 'danger' : 'warn'}>Licence: {s.license_status}</Badge>
+              {s.provider_kind === 'synthetic_demo'
+                ? <Badge tone="demo">Fictional data · no licence applicable</Badge>
+                : <Badge tone={s.license_status === 'approved' ? 'teal' : s.license_status === 'revoked' || s.license_status === 'rejected' ? 'danger' : 'warn'}>Licence: {s.license_status}</Badge>}
               <Badge tone={s.enabled ? 'teal' : 'neutral'}>{s.enabled ? 'Enabled' : 'Disabled'}</Badge>
             </div>
           </div>
