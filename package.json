@@ -1,0 +1,33 @@
+{
+  "name": "va-leadfinder",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "db:start": "bash scripts/db-local.sh start",
+    "db:stop": "bash scripts/db-local.sh stop",
+    "db:reset": "bash scripts/db-local.sh reset",
+    "dev": "pnpm -r --parallel --filter ./apps/* dev",
+    "dev:api": "pnpm --filter @vlf/api dev",
+    "dev:web": "pnpm --filter @vlf/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "test": "pnpm -r test",
+    "test:unit": "pnpm --filter @vlf/shared test",
+    "test:integration": "pnpm --filter @vlf/api test",
+    "test:e2e": "playwright test",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.63.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  }
+}
