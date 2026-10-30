@@ -43,7 +43,7 @@ Cloud sessions can't reach Postgres port 5432, so the database is set up over HT
 1. `node scripts/supabase-apply-migrations.mjs`: migrations and seed, recorded in `supabase_migrations.schema_migrations`.
 2. Read the project's anon (publishable) key: `GET https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/api-keys`.
 3. `cd apps/api && npx wrangler hyperdrive create vlf-db-staging --connection-string="$SUPABASE_DB_URL"`, then put the id in `[[env.staging.hyperdrive]]`.
-4. `wrangler secret put` for `SUPABASE_URL` (`https://$SUPABASE_PROJECT_REF.supabase.co`) and `INTERNAL_JOB_TOKEN` (random, 48 hex chars, never printed). Leave `ADMIN_USER_IDS` until the owner signs up.
+4. `wrangler secret put` for `SUPABASE_URL` (`https://$SUPABASE_PROJECT_REF.supabase.co`), `SUPABASE_SERVICE_ROLE_KEY` (the `service_role` key from step 2's API keys response, piped straight in, never printed; needed for admin user deletion) and `INTERNAL_JOB_TOKEN` (random, 48 hex chars, never printed). Leave `ADMIN_USER_IDS` until the owner signs up.
 5. `npx wrangler deploy --env staging` and note the `*.workers.dev` URL.
 6. `npx wrangler pages project create va-leadfinder --production-branch main`. Build the web app with `VITE_AUTH_MODE=supabase`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `VITE_API_BASE_URL=<workers.dev URL>`, then `npx wrangler pages deploy apps/web/dist --project-name va-leadfinder`.
    - Run both commands from `apps/web`, not the repo root or `apps/api` (wrangler would pick up the API's `wrangler.toml` or fail workspace detection).
