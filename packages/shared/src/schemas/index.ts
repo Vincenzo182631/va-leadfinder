@@ -176,6 +176,7 @@ export const opportunityInputSchema = z.object({
   sourceUrl: httpUrl,
   externalId: shortText(200).optional(),
   sourcePostedAt: isoDate.nullable().optional(),
+  lastVerifiedAt: isoDate.nullable().optional(),
   expiresAt: isoDate.nullable().optional(),
 });
 export type OpportunityInput = z.infer<typeof opportunityInputSchema>;

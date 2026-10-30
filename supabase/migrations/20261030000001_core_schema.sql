@@ -104,6 +104,7 @@ create table public.subscriptions (
   cancelled_at timestamptz,
   cancel_reason text,
   promo_ends_at timestamptz,
+  pending_plan_id uuid references public.plans(id),
   last_event_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

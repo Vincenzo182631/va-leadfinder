@@ -194,7 +194,7 @@ grant select, insert, update, delete on public.outreach_drafts to authenticated;
 grant select, insert on public.opportunity_feedback to authenticated;
 grant insert on public.product_events to authenticated;
 grant select, insert on public.data_requests to authenticated;
-grant select (id, user_id, plan_id, provider, status, current_period_start, current_period_end, past_due_since, cancelled_at, promo_ends_at, created_at, updated_at)
+grant select (id, user_id, plan_id, provider, status, current_period_start, current_period_end, past_due_since, cancelled_at, promo_ends_at, pending_plan_id, created_at, updated_at)
   on public.subscriptions to authenticated;
 -- NOT granted to anon/authenticated at all: source_records, ingestion_runs, billing_webhook_events, admin_audit_log.
 
