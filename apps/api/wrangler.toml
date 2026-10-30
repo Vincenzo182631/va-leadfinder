@@ -43,7 +43,7 @@ CORS_ORIGINS = "https://va-leadfinder.pages.dev"
 LICENSED_PROVIDER_ENABLED = "false"
 [[env.staging.hyperdrive]]
 binding = "HYPERDRIVE"
-id = "REPLACE_WITH_STAGING_HYPERDRIVE_ID"
+id = "2bc99c1ec317413a8b36f3f43714c5ee"
 [env.staging.triggers]
 crons = ["0 */6 * * *", "30 18 * * *", "0 22 * * *"]
 
