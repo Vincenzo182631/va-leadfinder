@@ -8,7 +8,7 @@ Nothing has been deployed from this repository. Staging and production require y
 |---|---|---|---|
 | Auth | `AUTH_MODE=local` (dev only) | Supabase (staging project) | Supabase (prod project) |
 | DB | Local Postgres + shim | Supabase staging | Supabase prod |
-| Billing | `mock` | `test` (sk_test_) | `disabled` → `live` after sign-off |
+| Billing | `mock` | `disabled` → `test` (sk_test_) once keys exist | `disabled` → `live` after sign-off |
 | Email | console | Resend (test domain) | Resend (verified domain) |
 | Demo mode | on | on | on until a licensed source exists (labelled) |
 

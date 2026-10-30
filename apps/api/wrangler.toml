@@ -33,10 +33,13 @@ name = "va-leadfinder-api-staging"
 [env.staging.vars]
 APP_ENV = "staging"
 AUTH_MODE = "supabase"
-PAYMONGO_MODE = "test"
+# Start "disabled" (the API refuses to boot in "test" mode without PayMongo keys).
+# Switch to "test" after setting PAYMONGO_SECRET_KEY (sk_test_) and PAYMONGO_WEBHOOK_SECRET.
+PAYMONGO_MODE = "disabled"
 TRANSACTIONAL_EMAIL_PROVIDER = "resend"
-APP_BASE_URL = "https://staging.example.com"
-CORS_ORIGINS = "https://staging.example.com"
+# Replace with your Cloudflare Pages staging URL (no custom domain needed for staging).
+APP_BASE_URL = "https://va-leadfinder.pages.dev"
+CORS_ORIGINS = "https://va-leadfinder.pages.dev"
 LICENSED_PROVIDER_ENABLED = "false"
 [[env.staging.hyperdrive]]
 binding = "HYPERDRIVE"
